@@ -427,7 +427,7 @@ then
       print " everything is now installed woo! lets do a recap of everything.."
       logo
       print "#################################################################"
-      print_green " admin control panel: http://$IP:8090/controlme"
+      print_green " admin control panel: http://$IP:8090/control_me"
       print_green " control panel password: $API_LOGIN_PASSWORD"
       print_green " control panel user is: admin"
       print "#################################################################"
@@ -461,7 +461,7 @@ then
       print " everything is now installed woo! lets do a recap of everything.."
       logo
       print "#################################################################"
-      print_green " admin control panel: http://$IP:8090/controlme"
+      print_green " admin control panel: http://$IP:8090/control_me"
       print_green " control panel password: $API_LOGIN_PASSWORD"
       print_green " control panel user is: admin"
       print "#################################################################"
