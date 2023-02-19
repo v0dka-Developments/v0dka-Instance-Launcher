@@ -339,14 +339,10 @@ install_launcher(){
   print "_____________________________________"
   print "|  now installing the Launcher       |"
   print "______________________________________"
-  key=$1
-  sever_ip=$2
-  server_port=$3
+  KEY=$1
+  SERVER_IP=$2
+  SERVER_PORT=$3
 
-
-  echo "i am the key $key"
-  echo "i am the serverip $server_ip"
-  echo "i am the server port $server_port"
   git clone https://github.com/v0dka-Developments/v0dka-Instance-Launcher
   cd ./v0dka-Instance-Launcher
   rm -rf ./database # we dont need this directory as we already installed db from raw github output
@@ -354,9 +350,9 @@ install_launcher(){
 
 
 
-  sed -i "s/ServerAddSecretKey = \".*\"/ServerAddSecretKey = \"$SERVER_ADD_SECRET_KEY\"/" ./ServiceInstanceManager/config.py
-  sed -i "s/Domain = \".*\"/Domain = \"$IP\"/" ./ServiceInstanceManager/config.py
-  sed -i 's/\bPort = .*$/Port = "8090"/' ./ServiceInstanceManager/config.py
+  sed -i "s/ServerAddSecretKey = \".*\"/ServerAddSecretKey = \"$KEY\"/" ./ServiceInstanceManager/config.py
+  sed -i "s/Domain = \".*\"/Domain = \"$SERVER_IP\"/" ./ServiceInstanceManager/config.py
+  sed -i "s/\bPORT = \".*\"/PORT = \"$SERVER_PORT\"/" ./ServiceInstanceManager/config.py
   ## update the service file...
   sed -i "s/username/$USER/g" ./ServiceInstanceManager/vodka_manager.service
   ## copy service to systemd
