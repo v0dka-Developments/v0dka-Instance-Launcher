@@ -4,10 +4,10 @@ After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/python3 /home/your path here/ServiceInstanceManager/start.py start
-WorkingDirectory= /home/your path here/
-Environment="PATH=/home/debian/.local/bin:$PATH"
-User=debian
+ExecStart=/usr/bin/python3 /home/username/v0dka-Instance-Launcher/ServiceInstanceManager/start.py start
+WorkingDirectory= /home/username/
+Environment="PATH=/home/username/.local/bin:$PATH"
+User=username
 
 [Install]
 WantedBy=multi-user.target
