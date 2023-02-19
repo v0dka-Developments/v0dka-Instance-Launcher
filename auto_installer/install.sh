@@ -180,7 +180,7 @@ sudo -E apt-get install mysql-server --assume-yes --no-install-recommends
 
  
   sudo systemctl enable --now mysql
-  sudo systemctl status mysql
+  
 
   print "##############################################################"
   print "##############################################################"
