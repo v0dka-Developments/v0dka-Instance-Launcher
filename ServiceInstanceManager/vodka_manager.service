@@ -1,0 +1,13 @@
+[Unit]
+Description=InstanceManager
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/your path here/ServiceInstanceManager/start.py start
+WorkingDirectory= /home/your path here/
+Environment="PATH=/home/debian/.local/bin:$PATH"
+User=debian
+
+[Install]
+WantedBy=multi-user.target

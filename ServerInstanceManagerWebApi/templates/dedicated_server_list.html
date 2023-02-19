@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>v0dka instance launcher</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.css">
+    <link rel="stylesheet"
+          href="https://monim67.github.io/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css">
+
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/dashboard.css') }}"/>
+</head>
+
+<body>
+<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0 text-center" href="#">V1.0</a>
+    <div class="nav-item w-100 text-center text-white" href="#">Vodka Instance Launcher</div>
+
+    <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+            <a class=" nav-link" href="logout">Sign out</a>
+        </li>
+    </ul>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard">
+                            <span data-feather="home"></span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="upload_build">
+                            <span data-feather="file"></span>
+                            Upload Build
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="server_list">
+                            <span data-feather="bar-chart-2"></span>
+                            Show Unreal Server Instances
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="dedicated_server_list">
+                            <span data-feather="bar-chart-2"></span>
+                            Show Dedicated Servers
+                        </a>
+                    </li>
+
+                </ul>
+
+
+                </ul>
+            </div>
+        </nav>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">Show Dedicated Servers</h1>
+
+            </div>
+
+
+            <div class="container">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                {{ message }}
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+                <div class="jumbotron pt-2 pb-5 text-center">
+                    <p class="lead">Update all servers?</p>
+
+                    <form method="POST">
+                        <div class="form-check pb-3">
+                            <input class="form-check-input" name="update" type="checkbox" value="yes"
+                                   id="defaultCheck1">
+                            <label class="form-check-label" for="defaultCheck1">
+                                Yes i want to update all servers with latest build!
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-success">Update</button>
+                    </form>
+                </div>
+
+
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th scope="col">Server IP</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for r in servers %}
+                    <form method="POST">
+                        <tr>
+                            <th scope="row"> {{ r[1] }}</th>
+                            <td>
+                                <input type="hidden" name="server_id" value="{{ r[0] }}">
+                                <input type="hidden" name="Server_IP" value="{{ r[1] }}">
+                                <button type="button" class="btn btn-primary" data-toggle="modal"
+                                        data-target="#StartMap{{ r[0] }}">
+                                    Start A Map
+                                </button>
+
+                                <button type="button" class="btn btn-success" data-toggle="modal"
+                                        data-target="#SendMessage{{ r[0] }}">
+                                    Send Message
+                                </button>
+
+
+                                <button type="submit" name="ForceUpdate" value="yes" class="btn btn-info">Force
+                                    Update
+                                </button>
+                                <button type="submit" name="RestartServer" value="yes" class="btn btn-warning">Restart
+                                    Server
+                                </button>
+                                <button type="submit" name="StopServer" value="yes" class="btn btn-danger">Stop
+                                    Server
+                                </button>
+                            </td>
+                    </form>
+                    </tr>
+                    <form method="POST">
+                        <input type="hidden" name="Server_IP" value="{{ r[1] }}">
+                        <div class="modal" id="StartMap{{ r[0] }}">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+
+                                    <!-- Modal Header -->
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">Map Start for: {{ r[1] }}</h4>
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    </div>
+
+                                    <!-- Modal body -->
+                                    <div class="modal-body">
+                                        <div class="text-center">This is for starting a map manually, do not use this
+                                            unless you know what you
+                                            are doing
+                                        </div>
+                                        <div class="form-group pt-5">
+                                            <label for="MapName">Enter Map Name</label>
+                                            <input type="text" name="MapName" class="form-control" id="MapName"
+                                                   aria-describedby="MapHelp"
+                                                   placeholder="Name of the map to start example: ThirdPersonExample">
+                                            <small id="MapHelp" class="form-text text-muted text-center">map names are
+                                                case
+                                                sensitive make sure you type it correctly</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Modal footer -->
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-success">Submit
+                                        </button>
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <form method="POST">
+                        <input type="hidden" name="Server_IP" value="{{ r[1] }}">
+                        <input type="hidden" name="server_id" value="{{ r[0] }}">
+                        <div class="modal" id="SendMessage{{ r[0] }}">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+
+                                    <!-- Modal Header -->
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">Send Broadcast Message For: {{ r[1] }}</h4>
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    </div>
+
+                                    <!-- Modal body -->
+                                    <div class="modal-body">
+                                        <div class="text-center">Use this to send a message to either all servers or
+                                            specific servers, if you want to send to a specific map or instance select
+                                            it from drop down
+                                        </div>
+                                        <div class="form-group pt-5">
+                                            <label for="Message">Enter Message:</label>
+                                            <input type="text" name="Message" class="form-control" id="Message"
+                                                   placeholder="example message: restart in 30minutes">
+                                            <div class="form-check text-center pt-3 pb-3">
+                                                <input type="checkbox" class="form-check-input RunOnAll" name="RunOnAll"
+                                                       id="RunOnAll">
+                                                <label class="form-check-label" for="RunOnAll">Run
+                                                    On Every
+                                                    Server?</label>
+                                            </div>
+
+                                            <div class="form-check text-center pt-3 pb-3">
+                                                <input type="checkbox" class="form-check-input Timer" name="Timer"
+                                                       id="Timer">
+                                                <label class="form-check-label" for="Timer">run on interval?</label>
+                                            </div>
+                                            <div class="Timer_Interval">
+                                                <div class="form-group">
+                                                    <label for="id_start_time">Start Time:</label>
+                                                    <div class="input-group date StartTime">
+                                                        <input type="text" name="end_time" value="11:31:00"
+                                                               class="form-control" placeholder="End time" title=""
+                                                               required="" id="id_start_time">
+                                                        <div class="input-group-addon input-group-append">
+                                                            <div class="input-group-text">
+                                                                <i class="glyphicon glyphicon-time fa fa-clock-o"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="id_end_time">End time:</label>
+                                                    <div class="input-group date EndTime">
+                                                        <input type="text" name="end_time" value="11:31:00"
+                                                               class="form-control" placeholder="End time" title=""
+                                                               required="" id="id_end_time">
+                                                        <div class="input-group-addon input-group-append">
+                                                            <div class="input-group-text">
+                                                                <i class="glyphicon glyphicon-time fa fa-clock-o"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="text-center">How Often We Want To Broadcast Message To Users
+                                                    Till End Time
+                                                </div>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" placeholder="Hours">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">-</span>
+                                                    </div>
+                                                    <input type="text" class="form-control" placeholder="Minutes">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">-</span>
+                                                    </div>
+                                                    <input type="text" class="form-control" placeholder="Seconds">
+                                                </div>
+
+                                            </div>
+                                            <div class="ShowMessageOptions pt-5">
+                                                <div class="text-center">
+                                                    <bold>Dont use both options below</bold>
+                                                    use one or the other
+                                                </div>
+                                                <label for="SelectServerInstance">Select Server Instance:</label>
+                                                <select class="form-control" id="SelectServerInstance">
+                                                    <option value="None">None</option>
+                                                    <option value="{{ r[1] }}">{{ r[1] }}</option>
+                                                </select>
+
+                                                <label for="SelectMapInstance">Select Server Map Instance:</label>
+                                                <select class="form-control" id="SelectMapInstance">
+                                                    <option value="None">None</option>
+                                                    <option value="ThirdPersonExample">ThirdPersonExample</option>
+
+                                                </select>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Modal footer -->
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-success">Submit
+                                        </button>
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    {% endfor %}
+
+
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+
+<!-- Bootstrap core JavaScript
+  ================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+<script type="text/javascript"
+        src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://monim67.github.io/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
+<script>
+    (function($){
+
+
+    $(function(){
+      $(".Timer_Interval").hide();
+
+        $('.StartTime').datetimepicker({
+            "allowInputToggle": true,
+            "showClose": true,
+            "showClear": true,
+            "showTodayButton": true,
+            "format": "HH:mm:ss",
+        });
+
+        $('.EndTime').datetimepicker({
+            "allowInputToggle": true,
+            "showClose": true,
+            "showClear": true,
+            "showTodayButton": true,
+            "format": "HH:mm:ss",
+        });
+
+
+
+        $(".Timer").click(function() {
+    if($(this).is(":checked")) {
+        $(".Timer_Interval").show(300);
+    } else {
+        $(".Timer_Interval").hide(200);
+    }
+});
+
+  $(".RunOnAll").click(function() {
+    if($(this).is(":checked")) {
+        $(".ShowMessageOptions").hide(300);
+    } else {
+        $(".ShowMessageOptions").show(200);
+    }
+    });
+    });
+})(jQuery);
+
+
+</script>
+<!-- Icons -->
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script>
+    feather.replace()
+</script>
+
+</body>
+
+</html>

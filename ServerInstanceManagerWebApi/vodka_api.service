@@ -1,0 +1,13 @@
+[Unit]
+Description=Vodka API
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/debian/ServerInstanceManagerWebApi/main.py
+WorkingDirectory= /home/debian/ServerInstanceManagerWebApi
+Environment="PATH=/home/debian/.local/bin:$PATH"
+User=debian
+
+[Install]
+WantedBy=multi-user.target
