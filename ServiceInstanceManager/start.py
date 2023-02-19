@@ -152,7 +152,7 @@ if args:
         else:
             print(x.content.decode("utf-8"))
     if(command == "ls"):
-        command = '''/bin/screen -ls | /bin/grep "ServerInstance"| /bin/awk '{print $1}' | cut -d. -f 2 '''  # the shell command to list screen processes
+        command = '''/bin/screen -ls | /bin/grep "ServerInstance"| /bin/awk '{print $1}' | /bin/cut -d. -f 2 '''  # the shell command to list screen processes
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True)
         output = process.communicate()
         screens = output[0].decode("utf-8")  ## because it returns in bytes we need to decode to text
@@ -204,7 +204,7 @@ if args:
     if(command == "start"):
         print("i am here")
         ### lets check if the server instancer is already running...
-        command = '''/bin/screen -ls | /bin/grep "ServerInstanceManager"| /bin/awk '{print $1}' | cut -d. -f 2 '''  # the shell command to list screen processes
+        command = '''/bin/screen -ls | /bin/grep "ServerInstanceManager"| /bin/awk '{print $1}' | /bin/cut -d. -f 2 '''  # the shell command to list screen processes
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True)
         # Launch the shell command:
         output = process.communicate()
@@ -217,7 +217,7 @@ if args:
             os.system(start_manager)
     if(command == "delete"):
         ### lets check if the server instancer is already running...
-        command = '''/bin/screen -ls | /bin/grep "'''+execute+'''"| /bin/awk '{print $1}' | cut -d. -f 2 '''  # the shell command to list screen processes
+        command = '''/bin/screen -ls | /bin/grep "'''+execute+'''"| /bin/awk '{print $1}' | /bin/cut -d. -f 2 '''  # the shell command to list screen processes
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True)
         # Launch the shell command:
         output = process.communicate()
