@@ -274,7 +274,7 @@ install_full(){
   ### the api setup should now be complete lets do the launcher
   sed -i "s/ServerAddSecretKey = \".*\"/ServerAddSecretKey = \"$SERVER_ADD_SECRET_KEY\"/" ./ServiceInstanceManager/config.py
   sed -i "s/Domain = \".*\"/Domain = \"$IP\"/" ./ServiceInstanceManager/config.py
-  sed -i 's/\bPort = .*$/Port = 8090/' ./ServiceInstanceManager/config.py
+  sed -i 's/\bPort = .*$/Port = "8090"/' ./ServiceInstanceManager/config.py
   ## update the service file...
   sed -i "s/username/$USER/g" ./ServiceInstanceManager/vodka_manager.service
   ## copy service to systemd
@@ -356,7 +356,7 @@ install_launcher(){
 
   sed -i "s/ServerAddSecretKey = \".*\"/ServerAddSecretKey = \"$SERVER_ADD_SECRET_KEY\"/" ./ServiceInstanceManager/config.py
   sed -i "s/Domain = \".*\"/Domain = \"$IP\"/" ./ServiceInstanceManager/config.py
-  sed -i 's/\bPort = .*$/Port = 8090/' ./ServiceInstanceManager/config.py
+  sed -i 's/\bPort = .*$/Port = "8090"/' ./ServiceInstanceManager/config.py
   ## update the service file...
   sed -i "s/username/$USER/g" ./ServiceInstanceManager/vodka_manager.service
   ## copy service to systemd
