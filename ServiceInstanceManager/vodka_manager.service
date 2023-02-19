@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/python3 /home/username/v0dka-Instance-Launcher/ServiceInstanceManager/start.py start
+ExecStart=/usr/bin/python3 /home/username/v0dka-Instance-Launcher/ServiceInstanceManager/instance_manager.py
 WorkingDirectory= /home/username/v0dka-Instance-Launcher/ServiceInstanceManager
 Environment="PATH=/home/username/.local/bin:$PATH"
 User=username
