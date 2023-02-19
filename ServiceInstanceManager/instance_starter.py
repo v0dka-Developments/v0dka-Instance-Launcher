@@ -56,20 +56,6 @@ if(len(input[1]) == 0):
 port = input[0]
 map = input[1]
 
-#print(Max_Players,Dedicated_Server_Location,Starting_Port,Max_Instances,steam,log,onload_map_start,onload_map)
-
-#PackagedServer.exe MapName?listen -server -log -nosteam -port=7778
-
-#if (onload_map_start == True):
-#    path_param = Dedicated_Server_Location+" "+onload_map+"?listen -server -log -port="+Starting_Port
-#    print(path_param)
-#    os.system(path_param)
-
-
-
-#while True:
-#    print("hello")
-
 
 
 
