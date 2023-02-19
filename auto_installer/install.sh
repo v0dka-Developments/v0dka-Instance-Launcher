@@ -482,9 +482,11 @@ then
       server_ip=$2
       server_port=$3
       server_pass=$4
-      echo $server_ip 
-      echo $server_port
-      echo $server_pass
+      verify_python
+      print "i am checking pip is installed"
+      verify_pip
+      print "i am now installing linux packages needed"
+      install_linux_packages
       if [[ $server_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
           if ! [[ $server_port =~ ^[0-9]+$ ]] ; then
             print_red "error: Not a valid port number" >&2; exit 1
