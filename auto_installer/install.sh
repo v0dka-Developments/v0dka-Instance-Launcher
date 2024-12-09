@@ -1,9 +1,19 @@
 #!/bin/bash
 
+## 09/12/2024
+## added error handling before script starts
+if [[ -z "$1" ]]; then
+    print_red "No parameters passed usage install.sh full or install.sh api or install.sh launcher, you can now pass localdev as an extra paramater"
+    exit 1
+fi
 
 sudo apt update && sudo apt upgrade -y
 ## we require these for packages to install them before we continue
 sudo apt-get install gcc openssl -y
+# 09/12/2024 -> curl install
+#some distros are not pre-installed with curl lets make sure we have it
+
+sudo apt-get install curl
 
 
 
@@ -73,6 +83,22 @@ export SERVER_ADD_SECRET_KEY="$(openssl rand -hex 30)"
 export IP=$(curl -s ifconfig.me)
 
 
+## 09/12/2024
+## added for local testing this will pull the local networks ip rather than wan network ip
+## so ip will return 10.x or 192.x depending on your networking setup... rather than the global ip
+if [[ "$2" == "localdev" ]]; then
+    #lip = local ip
+    lip=$(ip addr show | awk '/inet / && $NF != "lo" {print $2}' | cut -d/ -f1 | head -n 1)
+    echo "Debug: Retrieved IP: $lip"
+    echo "$lip"
+    export IP=$lip
+    if [[ -z "$IP" ]]; then
+        echo "Failed to retrieve local IP address. Ensure the network interface is up." >&2
+        exit 1
+    fi
+    echo "Using local IP: $IP"
+fi
+
 
 ### functions
 
@@ -99,6 +125,8 @@ update_upgrade(){
 
 
 }
+
+
 
 ### check python install
 verify_python(){
@@ -149,8 +177,8 @@ install_mysql(){
   
   echo "The current user is: $USER"
 
-
-  cd ~/ && wget https://repo.mysql.com//mysql-apt-config_0.8.24-1_all.deb 
+  ## updated to latest mysql config 09/12/2024
+  cd ~/ && wget https://dev.mysql.com/get/mysql-apt-config_0.8.30-1_all.deb
   
   ## generate random secure password
 
@@ -266,7 +294,9 @@ install_full(){
 
 
   ### ok now we have configured everything lets pip install the requirements
-  pip install -r ./ServerInstanceManagerWebApi/requirements.txt 
+  ## update 09/12/2024 -> install pip packages as system wide, maybe make this env in future if people running
+  # multiple different depenancies as this would cause a depeancy clash if versions are miss match
+  pip install --break-system-packages -r ./ServerInstanceManagerWebApi/requirements.txt 
 
   ## now lets copy the service file to systemd
   sudo cp ./ServerInstanceManagerWebApi/vodka_api.service /etc/systemd/system/vodka_api.service
@@ -280,7 +310,9 @@ install_full(){
   ## copy service to systemd
   sudo cp ./ServiceInstanceManager/vodka_manager.service /etc/systemd/system/vodka_manager.service
   ## install pip requirements
-  pip install -r ./ServiceInstanceManager/requirements.txt 
+  # update 09/12/2024 -> install pip packages as system wide, maybe make this env in future if people running
+  # multiple different depenancies as this would cause a depeancy clash if versions are miss match
+  pip install --break-system-packages -r ./ServiceInstanceManager/requirements.txt 
 
 
   ## reload systemd
@@ -294,20 +326,25 @@ install_full(){
 
 }
 
-
-install_api(){
-
-  print "_____________________________________"
-  print "|  now installing the API            |"
-  print "______________________________________"
+install_api() {
+  echo "_____________________________________"
+  echo "|  Now installing the API            |"
+  echo "______________________________________"
   
+  # Clone the repository
   git clone https://github.com/v0dka-Developments/v0dka-Instance-Launcher
   cd ./v0dka-Instance-Launcher
-  rm -rf ./database # we dont need this directory as we already installed db from raw github output
-  rm -rf ./ServiceInstanceManager # we dont need launcher so lets remove launcher
   
-  ## lets update the api configs first
+  # Remove unnecessary directories
+  rm -rf ./database # Database already installed
+  rm -rf ./ServiceInstanceManager # Launcher is not needed
+  
+  # Capture the absolute path of the current working directory
+  CURRENT_DIR=$(pwd)
+  CURRENT_USER=$(whoami)
+  CURRENT_HOME=$(eval echo ~$CURRENT_USER)
 
+  # Configure the API configs
   sed -i "s/Master_Password = \".*\"/Master_Password = \"$API_LOGIN_PASSWORD\"/" ./ServerInstanceManagerWebApi/config.py
   sed -i "s/AppSecretKey = \".*\"/AppSecretKey = \"$APP_SECRET_KEY\"/" ./ServerInstanceManagerWebApi/config.py
   sed -i "s/IP = \".*\"/IP = \"$IP\"/" ./ServerInstanceManagerWebApi/config.py
@@ -317,20 +354,21 @@ install_api(){
   sed -i "s/Username = \".*\"/Username = \"$MYSQL_NEW_USER\"/" ./ServerInstanceManagerWebApi/config.py
   sed -i "s/\bPassword = \".*\"/Password = \"$MYSQL_PASSWORD_USER\"/" ./ServerInstanceManagerWebApi/config.py
   sed -i "s/ServerAddSecretKey = \".*\"/ServerAddSecretKey = \"$SERVER_ADD_SECRET_KEY\"/" ./ServerInstanceManagerWebApi/config.py
+  
+  # Update the service file with the correct paths, user, and environment
+  sed -i "s|ExecStart=.*|ExecStart=/usr/bin/python3 $CURRENT_DIR/ServerInstanceManagerWebApi/main.py|" ./ServerInstanceManagerWebApi/vodka_api.service
+  sed -i "s|WorkingDirectory=.*|WorkingDirectory=$CURRENT_DIR/ServerInstanceManagerWebApi|" ./ServerInstanceManagerWebApi/vodka_api.service
+  sed -i "s|Environment=.*|Environment=\"PATH=$CURRENT_HOME/.local/bin:\$PATH\"|" ./ServerInstanceManagerWebApi/vodka_api.service
+  sed -i "s/User=.*/User=$CURRENT_USER/" ./ServerInstanceManagerWebApi/vodka_api.service
+  
+  # Install pip requirements system-wide
+  pip install --break-system-packages -r ./ServerInstanceManagerWebApi/requirements.txt 
 
-
-  # now lets configure the service file cheat way lets just regex for username and replace for current logged in user...
-  sed -i "s/username/$USER/g" ./ServerInstanceManagerWebApi/vodka_api.service
-
-
-  ### ok now we have configured everything lets pip install the requirements
-  pip install -r ./ServerInstanceManagerWebApi/requirements.txt 
-
-  ## now lets copy the service file to systemd
+  # Copy the service file to systemd and enable the service
   sudo cp ./ServerInstanceManagerWebApi/vodka_api.service /etc/systemd/system/vodka_api.service
   sudo systemctl daemon-reload
   sudo systemctl enable vodka_api.service
-  sudo service vodka_api start 
+  sudo systemctl start vodka_api.service
 }
 
 
@@ -357,8 +395,9 @@ install_launcher(){
   sed -i "s/username/$USER/g" ./ServiceInstanceManager/vodka_manager.service
   ## copy service to systemd
   sudo cp ./ServiceInstanceManager/vodka_manager.service /etc/systemd/system/vodka_manager.service
-  ## install pip requirements
-  pip install -r ./ServiceInstanceManager/requirements.txt 
+  ## install pip requirements## update 09/12/2024 -> install pip packages as system wide, maybe make this env in future if people running
+  # multiple different depenancies as this would cause a depeancy clash if versions are miss match
+  pip install --break-system-packages -r ./ServiceInstanceManager/requirements.txt 
 
   
 
@@ -471,6 +510,11 @@ then
       echo " "
       echo " "
       echo " "
+    fi
+
+     if [ "$1" == "test" ]
+    then
+      install_api
     fi
 
     if [ "$1" == "launcher" ]
