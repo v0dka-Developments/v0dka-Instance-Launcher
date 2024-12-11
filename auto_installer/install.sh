@@ -1,5 +1,22 @@
 #!/bin/bash
 
+## colors moved to begining of script so error can be printed before script execution
+## colours
+# function to print text in red color
+function print_red {
+    echo -e "\033[31m$1\033[0m"
+}
+
+function print_green {
+    echo -e "\033[32m$1\033[0m"
+}
+
+
+function print {
+    echo -e "\033[38;5;208m$1\033[0m"
+}
+
+
 ## 09/12/2024
 ## added error handling before script starts
 if [[ -z "$1" ]]; then
@@ -102,21 +119,6 @@ fi
 
 ### functions
 
-
-
-## colours
-function print_green {
-    echo -e "\033[32m$1\033[0m"
-}
-
-# function to print text in red color
-function print_red {
-    echo -e "\033[31m$1\033[0m"
-}
-
-function print {
-    echo -e "\033[38;5;208m$1\033[0m"
-}
 
 update_upgrade(){
 
@@ -275,7 +277,9 @@ install_full(){
   git clone https://github.com/v0dka-Developments/v0dka-Instance-Launcher
   cd ./v0dka-Instance-Launcher
   rm -rf ./database # we dont need this directory as we already installed db from raw github output
-  
+  CURRENT_DIR=$(pwd)
+  CURRENT_USER=$(whoami)
+  CURRENT_HOME=$(eval echo ~$CURRENT_USER)
   ## lets update the api configs first
 
   sed -i "s/Master_Password = \".*\"/Master_Password = \"$API_LOGIN_PASSWORD\"/" ./ServerInstanceManagerWebApi/config.py
@@ -290,8 +294,12 @@ install_full(){
 
 
   # now lets configure the service file cheat way lets just regex for username and replace for current logged in user...
-  sed -i "s/username/$USER/g" ./ServerInstanceManagerWebApi/vodka_api.service
-
+  #sed -i "s/username/$USER/g" ./ServerInstanceManagerWebApi/vodka_api.service
+  # Update the service file with the correct paths, user, and environment
+  sed -i "s|ExecStart=.*|ExecStart=/usr/bin/python3 $CURRENT_DIR/ServerInstanceManagerWebApi/main.py|" ./ServerInstanceManagerWebApi/vodka_api.service
+  sed -i "s|WorkingDirectory=.*|WorkingDirectory=$CURRENT_DIR/ServerInstanceManagerWebApi|" ./ServerInstanceManagerWebApi/vodka_api.service
+  sed -i "s|Environment=.*|Environment=\"PATH=$CURRENT_HOME/.local/bin:\$PATH\"|" ./ServerInstanceManagerWebApi/vodka_api.service
+  sed -i "s/User=.*/User=$CURRENT_USER/" ./ServerInstanceManagerWebApi/vodka_api.service
 
   ### ok now we have configured everything lets pip install the requirements
   ## update 09/12/2024 -> install pip packages as system wide, maybe make this env in future if people running
@@ -301,12 +309,20 @@ install_full(){
   ## now lets copy the service file to systemd
   sudo cp ./ServerInstanceManagerWebApi/vodka_api.service /etc/systemd/system/vodka_api.service
 
+
+
   ### the api setup should now be complete lets do the launcher
   sed -i "s/ServerAddSecretKey = \".*\"/ServerAddSecretKey = \"$SERVER_ADD_SECRET_KEY\"/" ./ServiceInstanceManager/config.py
   sed -i "s/Domain = \".*\"/Domain = \"$IP\"/" ./ServiceInstanceManager/config.py
   sed -i 's/\bPort = .*$/Port = "8090"/' ./ServiceInstanceManager/config.py
   ## update the service file...
-  sed -i "s/username/$USER/g" ./ServiceInstanceManager/vodka_manager.service
+  #sed -i "s/username/$USER/g" ./ServiceInstanceManager/vodka_manager.service
+    # Update the service file with the correct paths, user, and environment
+  sed -i "s|ExecStart=.*|ExecStart=/usr/bin/python3 $CURRENT_DIR/ServiceInstanceManager/instance_manager.py|" ./ServiceInstanceManager/vodka_manager.service
+  sed -i "s|WorkingDirectory=.*|WorkingDirectory=$CURRENT_DIR/ServiceInstanceManager|" ./ServiceInstanceManager/vodka_manager.service
+  sed -i "s|Environment=.*|Environment=\"PATH=$CURRENT_HOME/.local/bin:\$PATH\"|" ./ServiceInstanceManager/vodka_manager.service
+  sed -i "s/User=.*/User=$CURRENT_USER/" ./ServiceInstanceManager/vodka_manager.service
+  
   ## copy service to systemd
   sudo cp ./ServiceInstanceManager/vodka_manager.service /etc/systemd/system/vodka_manager.service
   ## install pip requirements
@@ -385,14 +401,21 @@ install_launcher(){
   cd ./v0dka-Instance-Launcher
   rm -rf ./database # we dont need this directory as we already installed db from raw github output
   rm -rf ./ServerInstanceManagerWebApi # we only need the instance launcher not the api so lets remove
-
+  CURRENT_DIR=$(pwd)
+  CURRENT_USER=$(whoami)
+  CURRENT_HOME=$(eval echo ~$CURRENT_USER)
 
 
   sed -i "s/ServerAddSecretKey = \".*\"/ServerAddSecretKey = \"$KEY\"/" ./ServiceInstanceManager/config.py
   sed -i "s/Domain = \".*\"/Domain = \"$SERVER_IP\"/" ./ServiceInstanceManager/config.py
   sed -i "s/\bPORT = \".*\"/PORT = \"$SERVER_PORT\"/" ./ServiceInstanceManager/config.py
   ## update the service file...
-  sed -i "s/username/$USER/g" ./ServiceInstanceManager/vodka_manager.service
+  #sed -i "s/username/$USER/g" ./ServiceInstanceManager/vodka_manager.service
+  # Update the service file with the correct paths, user, and environment
+  sed -i "s|ExecStart=.*|ExecStart=/usr/bin/python3 $CURRENT_DIR/ServerInstanceManagerWebApi/main.py|" ./ServerInstanceManagerWebApi/vodka_api.service
+  sed -i "s|WorkingDirectory=.*|WorkingDirectory=$CURRENT_DIR/ServerInstanceManagerWebApi|" ./ServerInstanceManagerWebApi/vodka_api.service
+  sed -i "s|Environment=.*|Environment=\"PATH=$CURRENT_HOME/.local/bin:\$PATH\"|" ./ServerInstanceManagerWebApi/vodka_api.service
+  sed -i "s/User=.*/User=$CURRENT_USER/" ./ServerInstanceManagerWebApi/vodka_api.service
   ## copy service to systemd
   sudo cp ./ServiceInstanceManager/vodka_manager.service /etc/systemd/system/vodka_manager.service
   ## install pip requirements## update 09/12/2024 -> install pip packages as system wide, maybe make this env in future if people running
@@ -504,17 +527,13 @@ then
       print_green " mysql password is $MYSQL_PASSWORD_USER"
       print_green " your root password for mysql is: $MYSQL_PASSWORD"
       print "#################################################################"
+      print_green "Secret Key for the instance launchers: $SERVER_ADD_SECRET_KEY"
       print " thank you for using the vodka instance launcher :) "
       print_green "https://v0dka-developments.github.io/v0dka-Instance-Launcher-Docs/"
       echo " "
       echo " "
       echo " "
       echo " "
-    fi
-
-     if [ "$1" == "test" ]
-    then
-      install_api
     fi
 
     if [ "$1" == "launcher" ]
